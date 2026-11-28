@@ -29,8 +29,11 @@ async function tx(tabela, modo, fn) {
   return new Promise((resolve, reject) => {
     const t = db.transaction(tabela, modo);
     const req = fn(t.objectStore(tabela));
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error);
+    let resultado;
+    req.onsuccess = () => { resultado = req.result; };
+    t.oncomplete = () => resolve(resultado);
+    t.onerror = () => reject(t.error || req.error);
+    t.onabort = () => reject(t.error || req.error || new Error('transação abortada'));
   });
 }
 export async function inserir(tabela, valor) {

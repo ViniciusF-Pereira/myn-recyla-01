@@ -27,7 +27,7 @@ A imagem usa Pollinations quando disponível e cai para Canvas local. O vídeo �
 Clique em **PROJETOS** para criar ou selecionar um projeto. Cada projeto tem nome, instruções, anexos de texto e memória isolada no cliente. O projeto ativo aparece no chip do chat.
 
 - **ANEXAR ARQUIVO** adiciona arquivos de texto ao projeto.
-- **IMPORTAR HISTÓRICO** copia a memória local e os registros do servidor sem duplicar registros.
+- **IMPORTAR HISTÓRICO** copia memórias locais e conversas do servidor, filtrando ruído e duplicatas.
 - **EXPORTAR** e **IMPORTAR** levam projetos e arquivos em JSON.
 
 Projeto, instruções e arquivos são enviados separadamente no SSE. Guia completo: [`PROJETOS.md`](PROJETOS.md).

@@ -46,7 +46,7 @@ O texto original continua visível e inalterado na conversa.
 - O id ativo fica em `sessionStorage` (`myn-projeto-ativo`).
 - Nenhum projeto é enviado a serviço externo para armazenamento.
 - Excluir um projeto remove seus arquivos, mas não apaga a memória da sessão.
-- A importação de histórico copia no máximo 500 registros locais e 500 registros do servidor, ignorando duplicatas.
+- A importação de histórico copia no máximo 200 memórias locais e 200 conversas do servidor, com deduplicação por conteúdo e limite total de 120 mil caracteres.
 
 ## Limites desta entrega
 
@@ -60,9 +60,11 @@ O texto original continua visível e inalterado na conversa.
 - Testes direcionados a projetos e goal: **12/12**.
 - Suíte Node completa: **101/101**.
 - QA no navegador: dois projetos, anexo de texto, importação de histórico, seleção, persistência, campos estruturados no SSE e layout sem overflow.
+- Histórico real do servidor: 61 conversas encontradas, **48 únicas importadas**, **13 duplicadas ignoradas**, **11.361 caracteres** e **zero registros de MCP/orquestração**.
 
 ## Provas visuais
 
 - Desktop: `docs/prints/playground-projetos-desktop.png`
 - Mobile: `docs/prints/playground-projetos-mobile.png`
+- Histórico real filtrado: `docs/prints/playground-historico-real.png`
 - QA executado: `outputs/qa-projetos.mjs` — dois projetos criados, seleção, persistência após recarregar, contexto no SSE e ausência de overflow.

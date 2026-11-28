@@ -12,7 +12,9 @@ Esta rodada amplia o F2 com anexos de texto, importação de histórico local e 
 - Arquivos ficam isolados por projeto e sobrevivem ao recarregamento.
 - Exportação/importação inclui projetos e arquivos.
 - Excluir projeto remove seus arquivos e preserva memória.
-- Histórico local e registros de chat do servidor podem ser importados para o projeto, com limite de 500 registros por origem e deduplicação.
+- Histórico local e conversas do servidor são filtrados antes da importação: no máximo 200 por origem, deduplicação por conteúdo e limite de 120 mil caracteres.
+- No histórico real, 61 conversas viraram 48 únicas importadas, 13 duplicadas ignoradas e zero registros de MCP/orquestração.
+- O IndexedDB agora confirma a transação completa antes de responder, evitando leitura antes do commit.
 - O SSE recebe `message`, `projetoNome`, `projetoInstrucoes` e `projetoArquivos` separadamente.
 - O servidor devolve `projeto` e `arquivosProjeto` nos eventos de progresso.
 - O planejador do goal recebe as três execuções anteriores e o checkpoint.

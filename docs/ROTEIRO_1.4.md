@@ -18,7 +18,7 @@ Aceite: 20 perguntas externas sem referência inventada; toda afirmação releva
 
 **Estado:** parcialmente entregue.
 
-Entregue: projetos, instruções, seleção ativa, memória isolada no cliente, anexos de texto, importação de histórico local e do servidor, exportação/importação e contexto estruturado no SSE.
+Entregue: projetos, instruções, seleção ativa, memória isolada no cliente, anexos de texto, importação filtrada de histórico local e de conversas do servidor, exportação/importação e contexto estruturado no SSE.
 
 Próximo: versionar instruções, mostrar memória importada na interface e isolar também a memória do servidor por projeto.
 

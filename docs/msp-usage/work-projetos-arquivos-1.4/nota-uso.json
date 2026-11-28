@@ -7,16 +7,16 @@
   "status": "completed",
   "started_at": "2026-11-28T17:05:00Z",
   "finished_at": "2026-11-28T17:47:51Z",
-  "letter_sha256": "9afebd3f9fbbeefd58678b46e95414c832a07924221f4b8286cd8812a4561602",
+  "letter_sha256": "119eaf29d0d0f4bd44f1cf98167fc37c4e9474ce3a101c943d9738579097e1e5",
   "receipts": [
     {
       "path": "receipts/validacao-local.md",
-      "sha256": "dead75ac406a43eb4b63e5d30cc1492e2f95a9de47dff8ed97f7704b55ef5cad"
+      "sha256": "79266f77522cff3b7345788e9d52b1a2e684f69e0275181d7a63d33a0e2b5ab4"
     }
   ],
   "events": [
     {
-      "id": "sha256:dead75ac406a43eb4b63e5d30cc1492e2f95a9de47dff8ed97f7704b55ef5cad",
+      "id": "sha256:79266f77522cff3b7345788e9d52b1a2e684f69e0275181d7a63d33a0e2b5ab4",
       "route": "local:node-test+browser-qa+visual-proof+sse-real",
       "status": "passed",
       "receipt": "receipts/validacao-local.md"
@@ -31,5 +31,5 @@
     "cost": { "value": null, "unit": "USD", "source": "sem recibo de custo MSP", "state": "unknown" }
   },
   "savings": null,
-  "notes": "A continuação entregou anexos de texto, importação de histórico local, contexto estruturado no SSE, memória de continuidade e endpoint de checkpoint para o goal. Suíte Node 101/101, testes direcionados 12/12, SSE real e QA visual aprovados. Limites: anexos de texto apenas, versionamento pendente e memória do servidor ainda por sessão. Nenhuma coleta nova de URLs."
+  "notes": "A continuação entregou anexos de texto, importação filtrada de histórico local e do servidor, contexto estruturado no SSE, memória de continuidade e endpoint de checkpoint para o goal. O histórico real foi reduzido de 61 conversas para 48 únicas, sem ruído. Suíte Node 101/101, testes direcionados 12/12, SSE real e QA visual aprovados. Limites: anexos de texto apenas, versionamento pendente e memória do servidor ainda por sessão. Nenhuma coleta nova de URLs."
 }

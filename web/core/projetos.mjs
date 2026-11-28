@@ -4,7 +4,8 @@ import * as db from '../db/leve.mjs';
 const MAX_ARQUIVOS = 20;
 const MAX_CARACTERES_ARQUIVO = 250000;
 const MAX_CARACTERES_PROJETO = 1000000;
-const MAX_HISTORICO = 500;
+const MAX_HISTORICO = 200;
+const MAX_CARACTERES_HISTORICO = 120000;
 
 function limparTexto(valor, maximo) {
   return String(valor || '').replace(/\r/g, '').trim().slice(0, maximo);
@@ -18,6 +19,12 @@ function validar({ nome, instrucoes = '' }) {
 
 function novoId(prefixo = 'proj:') {
   return prefixo + (globalThis.crypto?.randomUUID?.() || Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10));
+}
+
+function hashTexto(texto) {
+  let hash = 2166136261;
+  for (const char of String(texto || '')) { hash ^= char.charCodeAt(0); hash = Math.imul(hash, 16777619); }
+  return (hash >>> 0).toString(36);
 }
 
 export function criarProjetos(repo) {
@@ -86,21 +93,26 @@ export function criarProjetos(repo) {
     if (!(await obter(projetoId))) throw new Error('projeto não encontrado');
     const maximo = Math.max(1, Math.min(MAX_HISTORICO, Number(limite) || MAX_HISTORICO));
     const locais = (await repo.listar('eventos', 10000))
-      .filter((item) => item.tipo === 'memoria' && item.texto && !item.meta?.importadoDe)
+      .filter((item) => item.tipo === 'memoria' && item.texto && !item.meta?.importadoDe && !['resumo', 'preferencia'].includes(item.papel))
       .slice(-maximo);
-    const externosValidos = Array.isArray(externos) ? externos.slice(0, maximo).map((item) => ({ ...item, tipo: 'memoria', texto: String(item?.texto || '') })).filter((item) => item.id && item.texto) : [];
+    const externosValidos = Array.isArray(externos) ? externos.slice(0, maximo)
+      .map((item) => ({ ...item, tipo: 'memoria', texto: String(item?.texto || '').slice(0, 4000) }))
+      .filter((item) => item.id && item.texto) : [];
     const eventos = [...locais, ...externosValidos];
-    let importados = 0, ignorados = 0;
+    let importados = 0, ignorados = 0, caracteres = 0;
     for (const evento of eventos) {
-      const id = 'memproj:' + projetoId + ':' + evento.id;
+      const origem = String(evento.id || '').startsWith('server:') ? 'server:' + hashTexto(evento.texto) : String(evento.id || '');
+      const id = 'memproj:' + projetoId + ':' + origem;
       if (await repo.obter('eventos', id)) { ignorados++; continue; }
+      if (caracteres + evento.texto.length > MAX_CARACTERES_HISTORICO) { ignorados++; continue; }
+      const data = Number(evento.t) || Date.parse(evento.t) || Date.now();
       await repo.inserir('eventos', {
-        ...evento, id, tipo: 'memoria', projeto: projetoId, escopo: 'projeto', t: Date.now(),
+        ...evento, id, tipo: 'memoria', projeto: projetoId, escopo: 'projeto', t: data,
         meta: { ...(evento.meta || {}), importadoDe: evento.id, importadoEm: new Date().toISOString() },
       });
-      importados++;
+      importados++; caracteres += evento.texto.length;
     }
-    return { importados, ignorados, total: eventos.length };
+    return { importados, ignorados, total: eventos.length, caracteres };
   }
 
   async function remover(id) {

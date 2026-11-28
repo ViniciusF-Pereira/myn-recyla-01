@@ -72,9 +72,12 @@ test('histórico local é importado uma vez e isolado no projeto', async () => {
   repo.tabelas.eventos.set('mem:1', { id: 'mem:1', tipo: 'memoria', sessao: 's1', texto: 'Decisão importante do usuário.' });
   const projetos = criarProjetos(repo);
   const projeto = await projetos.criar({ nome: 'Com histórico' });
-  assert.deepEqual(await projetos.importarHistorico(projeto.id), { importados: 1, ignorados: 0, total: 1 });
-  assert.deepEqual(await projetos.importarHistorico(projeto.id), { importados: 0, ignorados: 1, total: 1 });
-  assert.deepEqual(await projetos.importarHistorico(projeto.id, 500, [{ id: 'server:1', texto: 'Histórico do servidor.' }]), { importados: 1, ignorados: 1, total: 2 });
+  assert.deepEqual(await projetos.importarHistorico(projeto.id), { importados: 1, ignorados: 0, total: 1, caracteres: 'Decisão importante do usuário.'.length });
+  assert.deepEqual(await projetos.importarHistorico(projeto.id), { importados: 0, ignorados: 1, total: 1, caracteres: 0 });
+  assert.deepEqual(await projetos.importarHistorico(projeto.id, 200, [
+    { id: 'server:1', texto: 'Histórico do servidor.' },
+    { id: 'server:2', texto: 'Histórico do servidor.' },
+  ]), { importados: 1, ignorados: 2, total: 3, caracteres: 'Histórico do servidor.'.length });
   const memoria = await import('../web/core/memoria-cliente.mjs').then((m) => m.criarMemoria(repo));
   const contexto = await memoria.contexto({ projeto: projeto.id, escopo: 'projeto' });
   assert.equal(contexto.length, 2);
