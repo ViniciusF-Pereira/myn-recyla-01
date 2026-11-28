@@ -17,6 +17,7 @@ test('Playground oferece painel de projetos e seleção persistente', async () =
   assert.match(html, /id="projetoInstrucoes"/);
   assert.match(html, /id="projetoAnexar"/);
   assert.match(html, /id="projetoHistorico"/);
+  assert.match(html, /id="projetoLimparHistorico"/);
   assert.match(html, /id="projetoArquivosLista"/);
   assert.match(html, /id="chipProjeto"/);
   assert.match(js, /myn-projeto-ativo/);

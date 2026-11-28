@@ -83,6 +83,12 @@ test('histórico local é importado uma vez e isolado no projeto', async () => {
   assert.equal(contexto.length, 2);
   assert.ok(contexto.some((item) => /Decisão importante/.test(item.texto)));
   assert.ok(contexto.some((item) => /Histórico do servidor/.test(item.texto)));
+  await memoria.registrar({ projeto: projeto.id, escopo: 'projeto', texto: 'Conversa nova que deve permanecer.' });
+  assert.equal(await projetos.limparHistoricoImportado(projeto.id), 2);
+  const restante = await memoria.contexto({ projeto: projeto.id, escopo: 'projeto' });
+  assert.equal(restante.length, 1);
+  assert.match(restante[0].texto, /Conversa nova/);
+  assert.equal(repo.tabelas.eventos.get('mem:1').texto, 'Decisão importante do usuário.');
 });
 
 test('remoção de projeto apaga seus arquivos mas preserva memória', async () => {

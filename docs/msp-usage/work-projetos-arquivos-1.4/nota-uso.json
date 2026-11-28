@@ -7,16 +7,16 @@
   "status": "completed",
   "started_at": "2026-11-28T17:05:00Z",
   "finished_at": "2026-11-28T17:47:51Z",
-  "letter_sha256": "119eaf29d0d0f4bd44f1cf98167fc37c4e9474ce3a101c943d9738579097e1e5",
+  "letter_sha256": "bf7404a65a80f2192136155b3ab4076a2a603eac59a8916396987508709e2851",
   "receipts": [
     {
       "path": "receipts/validacao-local.md",
-      "sha256": "79266f77522cff3b7345788e9d52b1a2e684f69e0275181d7a63d33a0e2b5ab4"
+      "sha256": "f3b1363a0a19ff300677dacb9bf7b6ddba1b4b87c0ddebb90f05a25b2e0c5ab3"
     }
   ],
   "events": [
     {
-      "id": "sha256:79266f77522cff3b7345788e9d52b1a2e684f69e0275181d7a63d33a0e2b5ab4",
+      "id": "sha256:f3b1363a0a19ff300677dacb9bf7b6ddba1b4b87c0ddebb90f05a25b2e0c5ab3",
       "route": "local:node-test+browser-qa+visual-proof+sse-real",
       "status": "passed",
       "receipt": "receipts/validacao-local.md"

@@ -16,7 +16,7 @@ Data: 2026-11-28 (UTC).
 - SSE real com `projetoNome` e `projetoArquivos`: HTTP 200, `projeto=Projeto SSE`, `arquivosProjeto=1`.
 - `POST /api/goal/checkpoint`: HTTP 200, meta `goal-mx0nfsla-1rym` atualizada com 5 concluídos e 6 pendentes.
 - QA `outputs/qa-projetos.mjs`: 2 projetos, 1 anexo, 2 registros de histórico importados (local e servidor), persistência e contexto estruturado confirmados.
-- QA `outputs/qa-historico-real.mjs`: 61 conversas reais, 48 importadas, 13 duplicadas ignoradas, 11.361 caracteres, 48 na memória do projeto e zero ruído.
+- QA `outputs/qa-historico-real.mjs`: 61 conversas reais, 48 importadas, 13 duplicadas ignoradas, 11.361 caracteres, memória visual sem ruído e limpeza seletiva de 48 registros.
 - Desktop 1440×1000 e mobile 390×844 sem overflow.
 
 ## Artefatos
@@ -30,9 +30,9 @@ Data: 2026-11-28 (UTC).
 - Guia: `docs/PROJETOS.md`
 - Roteiro: `docs/ROTEIRO_1.4.md`
 - Print do histórico real: `docs/prints/playground-historico-real.png`
-- SHA256: `77B5FDB31BAC3CA2BF692C2D4CF13170133895B602BCF10079407B64FA330CE2`
+- SHA256: `40E9FC5AF52C16D9330C16D7898CF1E621427EC630E2ADFABFCFB98B767E1D93`
 - Resultado do histórico real: `outputs/qa-historico-real-resultado.json`
-- SHA256: `09E36A8AC26B556E2D414C93FC45F9046E4F592243656F7BDDC2007EA796CB0E`
+- SHA256: `921483F3A13C6556E19D2F1894809BD567B4F5D826B0B39B5BA8C2E7D0E92DAE`
 
 ## Limites
 

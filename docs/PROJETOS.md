@@ -23,7 +23,8 @@ Entrega incremental do marco **F2** da meta 1.4 (`goal-mx0nfsla-1rym`).
 5. Use **ANEXAR ARQUIVO** para adicionar arquivos de texto.
 6. Use **IMPORTAR HISTÓRICO** para copiar a memória local e os registros de chat do servidor para o projeto.
 7. O chip no topo do chat mostra `projeto · <nome>`.
-8. Use **EXPORTAR** para baixar `myn-projetos.json` e **IMPORTAR** para restaurar projetos e arquivos.
+8. Use **LIMPAR HISTÓRICO** para remover somente registros importados e preservar conversas novas.
+9. Use **EXPORTAR** para baixar `myn-projetos.json` e **IMPORTAR** para restaurar projetos e arquivos.
 
 Ao enviar uma mensagem, o Myn acrescenta ao pedido:
 

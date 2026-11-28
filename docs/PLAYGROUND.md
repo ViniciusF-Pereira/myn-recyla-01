@@ -28,6 +28,7 @@ Clique em **PROJETOS** para criar ou selecionar um projeto. Cada projeto tem nom
 
 - **ANEXAR ARQUIVO** adiciona arquivos de texto ao projeto.
 - **IMPORTAR HISTÓRICO** copia memórias locais e conversas do servidor, filtrando ruído e duplicatas.
+- **LIMPAR HISTÓRICO** remove somente os registros importados e preserva conversas novas.
 - **EXPORTAR** e **IMPORTAR** levam projetos e arquivos em JSON.
 
 Projeto, instruções e arquivos são enviados separadamente no SSE. Guia completo: [`PROJETOS.md`](PROJETOS.md).

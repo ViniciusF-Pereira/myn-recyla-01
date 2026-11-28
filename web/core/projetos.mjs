@@ -115,6 +115,14 @@ export function criarProjetos(repo) {
     return { importados, ignorados, total: eventos.length, caracteres };
   }
 
+  async function limparHistoricoImportado(projetoId) {
+    if (!(await obter(projetoId))) throw new Error('projeto não encontrado');
+    const eventos = (await repo.listar('eventos', 10000))
+      .filter((item) => item.tipo === 'memoria' && item.projeto === projetoId && item.meta?.importadoDe);
+    for (const evento of eventos) await repo.remover('eventos', evento.id);
+    return eventos.length;
+  }
+
   async function remover(id) {
     if (!String(id || '').startsWith('proj:')) throw new Error('id de projeto inválido');
     for (const arquivo of await listarArquivos(id)) await repo.remover('arquivos', arquivo.id);
@@ -166,7 +174,7 @@ export function criarProjetos(repo) {
     return { projetos: importados, arquivos: arquivosImportados };
   }
 
-  return { listar, obter, criar, atualizar, listarArquivos, anexarArquivo, removerArquivo, importarHistorico, remover, exportar, importar };
+  return { listar, obter, criar, atualizar, listarArquivos, anexarArquivo, removerArquivo, importarHistorico, limparHistoricoImportado, remover, exportar, importar };
 }
 
 export const projetos = criarProjetos(db);
