@@ -25,6 +25,7 @@ Baixe a extensão, instale no Chrome/Edge e clique no ícone para abrir a VM Web
 
 - Download: [`v1.3.1 · myn-recicla-extensao.zip`](https://github.com/ViniciusF-Pereira/myn-Recicla-01/releases/download/v1.3.1/myn-recicla-extensao.zip)
 - Notas da versão: [`docs/RELEASE_1.3.1.md`](docs/RELEASE_1.3.1.md)
+- Roteiro do agente: [`docs/ROTEIRO_1.4.md`](docs/ROTEIRO_1.4.md)
 - Guia completo: [`docs/EXTENSAO.md`](docs/EXTENSAO.md) · [`docs/PLAYGROUND.md`](docs/PLAYGROUND.md) · [`docs/LOJAS_CHAT.md`](docs/LOJAS_CHAT.md) · [`docs/VARREDURA_WEB.md`](docs/VARREDURA_WEB.md) · [`docs/BENCHMARK_AGENTE.md`](docs/BENCHMARK_AGENTE.md)
 - WORK caçador: catálogo de 32 chats, mapeamento do DOM, adaptadores descobertos e mapeador de lojas
 - Rotas internas: ChatGPT Web, Claude Web, HuggingChat, OpenRouter :free e Z.ai/GLM
@@ -47,6 +48,7 @@ npm run benchmark
 - **Scoreboard**: score = 0,45·sucesso + 0,35·velocidade + 0,2·recência, com circuit breaker de 3 estados.
 - **MCP** JSON-RPC com 15 ferramentas para agentes externos.
 - **Memória/RAG local:** escopos sessão/projeto/global, busca híbrida, resumo persistido e exportação/importação em JSON.
+- **Projetos locais:** instruções persistentes, seleção ativa, memória isolada no cliente e exportação/importação em JSON; veja [`docs/PROJETOS.md`](docs/PROJETOS.md).
 - **Extensão confiável:** adaptadores versionados, saúde por rota, diagnóstico de layout, modo manual, WORK caçador de chats e mapeador de lojas com busca por pedido/orçamento.
 - **Varredura web retomável:** GitHub, Tranco, Open Page Rank (10 milhões) e Common Crawl; teste concorrente com limite por origem, proteção SSRF e classificação de chats, geradores, lojas, login, paywall e bloqueios. Acervo atual: **1.189.191 URLs**; **273.503 tentativas** e **915.688 na fila** em 28/11/2026. Coleta parada por decisão do operador; somente a fila existente pode ser testada.
 - **Goal autônomo**: `/plan` → `/loop` → `/goal` com agendador usando a própria API.
@@ -144,7 +146,7 @@ Validação executada em [`docs/DOCKER_VALIDACAO.md`](docs/DOCKER_VALIDACAO.md):
 node scripts/avaliar.mjs     # 15 baterias → docs/AVALIACAO.md
 node scripts/mapear.mjs      # grava input/output/print de cada provider
 ```
-Última bateria: **15/15 OK**. Evidência atual da 1.3: **89/89 testes Node**, **25/25 aceites Chromium/Edge**, **24/24 testes offline da varredura** e `npm run check` do vídeo aprovado. Detalhes em [`docs/AVALIACAO.md`](docs/AVALIACAO.md), evolução em [`docs/EVOLUCAO.md`](docs/EVOLUCAO.md), modelos por rota em [`docs/AGENTES_E_MODELOS.md`](docs/AGENTES_E_MODELOS.md) e arquitetura em [`docs/ARQUITETURA.md`](docs/ARQUITETURA.md).
+Última bateria: **15/15 OK**. Evidência atual: **97/97 testes Node**, **25/25 aceites Chromium/Edge**, **24/24 testes offline da varredura** e `npm run check` do vídeo aprovado. Detalhes em [`docs/AVALIACAO.md`](docs/AVALIACAO.md), evolução em [`docs/EVOLUCAO.md`](docs/EVOLUCAO.md), modelos por rota em [`docs/AGENTES_E_MODELOS.md`](docs/AGENTES_E_MODELOS.md) e arquitetura em [`docs/ARQUITETURA.md`](docs/ARQUITETURA.md).
 
 **Direção web-only:** [`docs/PLANEJAMENTO.md`](docs/PLANEJAMENTO.md) — evoluir o Myn para agente open-source tipo OpenCode/Claude Code/Codex usando **somente rotas free de navegador + WebGPU**, sem binário/local PC. Fase 0 item 3 já entregue: `/api/orquestrar?rapido=true` nunca escolhe rotas `*-local`.
 

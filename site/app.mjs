@@ -14,6 +14,7 @@ import * as midia from '../web/midia/navegador.mjs';
 import * as cliente from '../web/core/rotas-cliente.mjs';
 import * as planilha from '../web/tools/planilha.mjs';
 import { orientarPedido } from '../web/tools/orientador.mjs';
+import { projetos } from '../web/core/projetos.mjs';
 
 async function semear() {
   try {
@@ -51,6 +52,7 @@ window.myn = {
   midia: { capacidade: midia.capacidade, gerarImagem: midia.gerarImagem, narrar: midia.narrar, gravarNarracao: midia.gravarNarracao, gerarVideo: midia.gerarVideo, gerarGif: midia.gerarGif, extrairArquivo: midia.extrairArquivo, baixar: midia.baixar },
   planilha: { gerar: planilha.gerarPlanilha, conteudo: planilha.conteudoPlanilha },
   orientar: orientarPedido,
+  projetos,
   cliente: { conversar: cliente.conversar, extensaoDisponivel: cliente.extensaoDisponivel, listarRotas: cliente.listarRotasExtensao, abrirVM: cliente.abrirVMExtensao, selecionarRotas: cliente.selecionarRotas, descobrirRota: cliente.descobrirRotaExtensao, descobrirAbaAtual: cliente.descobrirAbaAtualExtensao, ativarDescoberta: cliente.ativarDescobertaExtensao, listarLojas: cliente.listarLojasExtensao, mapearLoja: cliente.mapearLojaExtensao, mapearLojaAtual: cliente.mapearLojaAtualExtensao, observarLoja: cliente.observarLojaExtensao, pesquisarLoja: cliente.pesquisarLojaExtensao, listarEventosLoja: cliente.listarEventosLojaExtensao, abrirChatLoja: cliente.abrirChatLojaExtensao, enviarChatLoja: cliente.enviarChatLojaExtensao },
   memoria: cliente.memoria,
   rag: { ...ragStore, ...cliente.rag },

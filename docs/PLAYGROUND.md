@@ -22,6 +22,12 @@ Abra pelos botões **Imagem**, **Áudio** ou **Vídeo**.
 
 A imagem usa Pollinations quando disponível e cai para Canvas local. O vídeo é animação Canvas/MediaRecorder. Áudio usa SpeechSynthesis; gravar arquivo de voz pode exigir permissão de compartilhamento.
 
+## Projetos locais
+
+Clique em **PROJETOS** para criar ou selecionar um projeto. Cada projeto tem nome, instruções e memória isolada no cliente. O projeto ativo aparece no chip do chat e suas instruções entram no contexto do pedido.
+
+Use **EXPORTAR** e **IMPORTAR** para levar os projetos em JSON. Guia completo: [`PROJETOS.md`](PROJETOS.md).
+
 ## Planilhas
 
 Peça, por exemplo: `gere uma planilha de alertas de sinais de wifi públicos`.

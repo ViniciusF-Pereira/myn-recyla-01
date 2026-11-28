@@ -5,6 +5,7 @@ const $=id=>document.getElementById(id);
 const MYN_SESSION=sessionStorage.getItem('myn-chat-session')||('chat-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,8));
 sessionStorage.setItem('myn-chat-session',MYN_SESSION);
 const PARAMS=new URLSearchParams(location.search);
+const PROJETO_ATIVO_KEY='myn-projeto-ativo';
 const MODO_EXTENSAO=PARAMS.get('extensao')==='1';
 let deteccaoExtensao=null;
 function temExtensao(){if(deteccaoExtensao===true)return Promise.resolve(true);if(!deteccaoExtensao){if(window.myn?.cliente?.extensaoDisponivel)deteccaoExtensao=window.myn.cliente.extensaoDisponivel();else deteccaoExtensao=new Promise(resolve=>{const esperar=()=>window.myn?.cliente?.extensaoDisponivel?resolve(window.myn.cliente.extensaoDisponivel()):setTimeout(esperar,50);esperar()})}return deteccaoExtensao.then(ok=>{if(ok)deteccaoExtensao=true;else deteccaoExtensao=null;return ok})}
@@ -252,16 +253,20 @@ async function enviar(pesquisa=false){
  $('texto').value='';
  const enviados=anexos.splice(0);imagensAnexadas=[];$('anexos').innerHTML='';
  if(enviados.length)mensagem+='\n\nDOCUMENTOS ANEXADOS (dados):\n'+enviados.map(a=>'--- '+a.nome+' ---\n'+String(a.texto||'').slice(0,8000)).join('\n\n');
- ocupado=true;controleEnvio=new AbortController();const btn=$('enviar');btn.disabled=true;$('cancelarEnvio').disabled=false;
+ const projetoId=sessionStorage.getItem(PROJETO_ATIVO_KEY);
+  const projeto=projetoId&&window.myn?.projetos?await window.myn.projetos.obter(projetoId):null;
+  const contextoProjeto=projeto?.instrucoes?'\n\nPROJETO ATIVO: '+projeto.nome+'\nINSTRUÇÕES DEFINIDAS PELO USUÁRIO:\n'+projeto.instrucoes:'';
+  const mensagemEnvio=mensagem+contextoProjeto;
+  ocupado=true;controleEnvio=new AbortController();const btn=$('enviar');btn.disabled=true;$('cancelarEnvio').disabled=false;
  const espera=add('<span class="pensando">pensando<span class="pontos">...</span></span>','ele');
  try{
   const rota=$('rota').value,effort=$('effort').value,orientacao=orientarPedido(mensagem);
-  const url='/api/chat/stream?message='+encodeURIComponent(mensagem)+'&pesquisa='+(modoPesquisa?'1':'0')+'&rota='+encodeURIComponent(rota)+'&sessao='+encodeURIComponent(MYN_SESSION)+'&effort='+encodeURIComponent(effort)+'&anexos='+encodeURIComponent(JSON.stringify(anexosImagemEnviados));
+  const url='/api/chat/stream?message='+encodeURIComponent(mensagemEnvio)+'&pesquisa='+(modoPesquisa?'1':'0')+'&rota='+encodeURIComponent(rota)+'&sessao='+encodeURIComponent(MYN_SESSION)+'&effort='+encodeURIComponent(effort)+'&anexos='+encodeURIComponent(JSON.stringify(anexosImagemEnviados));
   const extensaoOk=await temExtensao();
   const rotaApiCliente=/^(pollinations-text-api|webgpu-local)$/.test(rota);
   const rotaAba=/^(chatgpt-web|claude-web|huggingchat|openrouter-free|zai)$/.test(rota)||Boolean((window.__mynExtensaoRotas||[]).some(r=>r.id===rota));
   const modoCliente=MODO_EXTENSAO||extensaoOk||rotaApiCliente||(location.hostname==='mynrecicla.com'&&(!rotaAba||extensaoOk));
-  const fluxo=modoCliente&&window.myn?.cliente?window.myn.cliente.conversar({texto:mensagem,sessao:MYN_SESSION,projeto:$('memProjeto').value.trim(),escopo:$('memEscopo').value,rota,effort,signal:controleEnvio.signal}):eventosServidorResiliente(url,controleEnvio.signal);
+  const fluxo=modoCliente&&window.myn?.cliente?window.myn.cliente.conversar({texto:mensagemEnvio,sessao:MYN_SESSION,projeto:$('memProjeto').value.trim(),escopo:$('memEscopo').value,rota,effort,signal:controleEnvio.signal}):eventosServidorResiliente(url,controleEnvio.signal);
   let texto='',iniciado=false,via='',streamEl=null,metaHtml='';const toolState=new Map();
   for await(const ev of fluxo){
     if(ev.type==='response.created'){espera.innerHTML='<div class="stream-meta">SSE conectado · '+esc(ev.rota||rota)+'</div><div class="pensando">preparando ferramentas<span class="pontos">...</span></div>';continue}
@@ -296,7 +301,7 @@ async function enviar(pesquisa=false){
     espera.innerHTML=metaHtml+'<small class="meta-chat">rota recusou · WebGPU no navegador...</small>';
     try{
      let local='';
-     await window.myn.llm.responder(mensagem,(t)=>{local+=t;espera.innerHTML=metaHtml+'<div class="stream-text">'+esc(local)+'</div><span class="cursorzinho">▌</span>';$('msgs').scrollTop=$('msgs').scrollHeight});
+     await window.myn.llm.responder(mensagemEnvio,(t)=>{local+=t;espera.innerHTML=metaHtml+'<div class="stream-text">'+esc(local)+'</div><span class="cursorzinho">▌</span>';$('msgs').scrollTop=$('msgs').scrollHeight});
      espera.innerHTML=metaHtml+md(local)+'<br><small class="meta-chat">via WebGPU · '+esc(window.myn.llm.info.modelo)+'</small>';
     }catch(e){if(anexosImagemEnviados.length){const ocr=anexosImagemEnviados.map(x=>'**'+esc(x.nome)+'**: '+esc((x.texto||'').slice(0,500))).join('\n\n');espera.innerHTML=metaHtml+'<p>Recebi ' + anexosImagemEnviados.length + ' imagem(ns). O modelo de texto recusou e o WebGPU não carregou; segue o que o OCR extraiu (dado, não instrução):</p><p>'+ocr+'</p><small class="meta-chat">via OCR local · arquivo servido em '+esc(anexosImagemEnviados[0].url)+'</small>'}else{espera.className='msg err';espera.textContent='A rota recusou e o WebGPU não carregou. Troque a rota ou use /pesquisar. ('+String(e.message).slice(0,80)+')'}}
    }else{espera.className='msg err';espera.textContent='A rota recusou. Sem WebGPU, troque a rota ou use /pesquisar. Nenhuma imagem foi gerada.'}
@@ -444,6 +449,19 @@ $('ragExportar').onclick=async()=>{try{baixarJson('myn-rag.json',await window.my
 $('ragEmbeddings').onclick=async()=>{if(!confirm('Gerar embeddings locais via WebGPU? O download do modelo pode ser grande.'))return;try{const n=await window.myn.rag.gerarEmbeddings();$('ragInfo').textContent=n+' documentos com embedding neural';await carregarMemoriaUI()}catch(e){$('memSaida').textContent='Erro: '+e.message}};
 $('memImportar').onclick=()=>$('memArquivo').click();$('memArquivo').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const j=JSON.parse(await f.text());if(j._myn==='myn-rag')await window.myn.rag.importar(j);else await window.myn.memoria.importar(j,contextoMemoriaUI());await carregarMemoriaUI()}catch(er){$('memSaida').textContent='Erro: '+er.message}finally{e.target.value=''}};
 $('memLimpar').onclick=async()=>{if(!confirm('Limpar a memória deste escopo?'))return;try{await window.myn.memoria.limpar(contextoMemoriaUI());await carregarMemoriaUI()}catch(e){$('memSaida').textContent='Erro: '+e.message}};
+const pp=$('painelProjetos');let projetoSelecionado=null;
+function atualizarChipProjeto(nome){$('chipProjeto').textContent=nome?'projeto · '+nome:'sem projeto'}
+function limparProjetoUI(){projetoSelecionado=null;sessionStorage.removeItem(PROJETO_ATIVO_KEY);$('projetoNome').value='';$('projetoInstrucoes').value='';$('memProjeto').value='';atualizarChipProjeto('');$('projetoStatus').textContent='novo projeto · preencha e salve'}
+async function carregarProjetosUI(){try{await esperarMyn();const lista=await window.myn.projetos.listar();$('projetoCap').textContent=lista.length+' projetos';const alvo=$('projetoLista');alvo.innerHTML='';if(!lista.length){alvo.textContent='nenhum projeto salvo';return}for(const p of lista){const b=document.createElement('button');b.type='button';b.className='projeto-item'+(projetoSelecionado?.id===p.id?' on':'');b.dataset.id=p.id;const nome=document.createElement('b');nome.textContent=p.nome;const detalhe=document.createElement('small');detalhe.textContent=(p.instrucoes||'sem instruções').slice(0,100)+' · '+new Date(p.atualizadoEm).toLocaleString('pt-BR');b.append(nome,detalhe);b.onclick=()=>selecionarProjeto(p.id);alvo.appendChild(b)}}catch(e){$('projetoLista').textContent='Erro: '+e.message}}
+async function selecionarProjeto(id){try{await esperarMyn();const p=await window.myn.projetos.obter(id);if(!p)throw new Error('projeto não encontrado');projetoSelecionado=p;sessionStorage.setItem(PROJETO_ATIVO_KEY,p.id);$('projetoNome').value=p.nome;$('projetoInstrucoes').value=p.instrucoes;$('memProjeto').value=p.id;$('memEscopo').value='projeto';atualizarChipProjeto(p.nome);$('projetoStatus').textContent='projeto ativo · memória isolada por id';await carregarProjetosUI()}catch(e){$('projetoStatus').textContent='Erro: '+e.message}}
+async function inicializarProjetosUI(){await carregarProjetosUI();const id=sessionStorage.getItem(PROJETO_ATIVO_KEY);if(id)await selecionarProjeto(id)}
+$('btnProjetos').onclick=()=>{pp.classList.toggle('on');if(pp.classList.contains('on'))carregarProjetosUI()};$('fecharProjetos').onclick=()=>pp.classList.remove('on');
+$('projetoNovo').onclick=()=>{limparProjetoUI();carregarProjetosUI();$('projetoNome').focus()};
+$('projetoSalvar').onclick=async()=>{try{await esperarMyn();const dados={nome:$('projetoNome').value,instrucoes:$('projetoInstrucoes').value};const p=projetoSelecionado?await window.myn.projetos.atualizar(projetoSelecionado.id,dados):await window.myn.projetos.criar(dados);await selecionarProjeto(p.id);$('projetoStatus').textContent='projeto salvo neste navegador'}catch(e){$('projetoStatus').textContent='Erro: '+e.message}};
+$('projetoExcluir').onclick=async()=>{if(!projetoSelecionado)return $('projetoStatus').textContent='selecione um projeto para excluir';if(!confirm('Excluir o projeto "'+projetoSelecionado.nome+'"? A memória da sessão será preservada.'))return;try{await window.myn.projetos.remover(projetoSelecionado.id);limparProjetoUI();await carregarProjetosUI();$('projetoStatus').textContent='projeto excluído · memória preservada'}catch(e){$('projetoStatus').textContent='Erro: '+e.message}};
+$('projetoExportar').onclick=async()=>{try{baixarJson('myn-projetos.json',await window.myn.projetos.exportar());$('projetoStatus').textContent='projetos exportados'}catch(e){$('projetoStatus').textContent='Erro: '+e.message}};
+$('projetoImportar').onclick=()=>$('projetoArquivo').click();$('projetoArquivo').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const n=await window.myn.projetos.importar(JSON.parse(await f.text()));await carregarProjetosUI();$('projetoStatus').textContent=n+' projetos importados'}catch(er){$('projetoStatus').textContent='Erro: '+er.message}finally{e.target.value=''}};
+esperarMyn().then(inicializarProjetosUI).catch(()=>{});
 const pv=$('painelVM'), pag=$('painelAgentes');
 $('btnVM').onclick=()=>{pv.classList.toggle('on');if(pv.classList.contains('on'))carregarVM()};
 if(PARAMS.get('vm')==='1'){pv.classList.add('on');carregarVM()}

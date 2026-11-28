@@ -284,6 +284,20 @@ body.modo-extensao .chat-shell{box-shadow:6px 7px 0 var(--yellow)}body.modo-exte
 @media(max-width:860px){.msgs{height:480px;padding:22px 18px}.msg{max-width:94%}.chat-top{flex-wrap:wrap}.chat-controles{width:100%;margin-left:0}.chat-controles select{flex:1;max-width:none}.estudo-linha{grid-template-columns:1fr 1fr}#campoDuracao{grid-column:1/-1}.st .nota{display:none}}
 @media(max-width:560px){.pg-section{padding-top:18px!important}.st h2{font-size:2.7rem}.chat-shell{box-shadow:6px 7px 0 var(--yellow)}.chat-top{padding:12px}.chat-cap{padding:8px 10px}.msgs{height:52vh;min-height:360px;padding:18px 12px}.msg{font-size:.92rem;padding:12px 13px}.composer{padding:11px}.ferr{min-height:38px}.linha-input{flex-wrap:wrap}.linha-input textarea{order:-1;flex-basis:100%;min-height:58px}.linha-input .btn{flex:1}.linha-input .icobtn{width:44px;height:44px}.estudio-campos{padding:12px}.estudo-linha{grid-template-columns:1fr}.estudio-acoes .btn{flex:1}#estudioStatus{flex-basis:100%;margin-left:0}.estudio-preview{min-height:180px;padding:12px}.extensao-banner a{margin-left:0}}
 @media(max-width:560px){body.estudio-aberto .wa-root{display:none!important}}
+.painel-projetos{border-color:var(--blue);box-shadow:0 16px 40px rgba(31,111,224,.24)}
+.painel-projetos .pv-topo{background:var(--navy);border-bottom:2px solid var(--yellow)}
+.projeto-form{display:grid;gap:10px;margin-bottom:14px;padding:12px;border:1px solid var(--line);background:var(--paper);border-radius:4px}
+.projeto-form label{display:grid;gap:5px;font:600 .58rem var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.projeto-form input,.projeto-form textarea{width:100%;border:1px solid var(--ink);border-radius:3px;background:var(--white);color:var(--ink);padding:10px 11px;font:400 .84rem/1.5 var(--sans);outline:none}
+.projeto-form textarea{min-height:132px;resize:vertical}
+.projeto-form input:focus,.projeto-form textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(31,111,224,.12)}
+.projeto-acoes{display:flex;gap:7px;flex-wrap:wrap}.projeto-acoes .btn{min-height:38px;font-size:.6rem;box-shadow:3px 3px 0 var(--navy)}
+.projeto-lista{display:grid;gap:8px}.projeto-item{width:100%;display:grid;gap:4px;text-align:left;border:1px solid var(--line);border-radius:4px;background:var(--white);color:var(--ink);padding:10px 11px;cursor:pointer}
+.projeto-item b{font:600 .78rem var(--sans)}.projeto-item small{font:500 .6rem/1.45 var(--mono);color:var(--muted)}
+.projeto-item.on{border:2px solid var(--blue);background:var(--azucl,#eaf2fc);padding:9px 10px;box-shadow:3px 3px 0 var(--paper2)}
+#projetoStatus{margin-top:10px;font:500 .62rem var(--mono);color:var(--muted)}
+#chipProjeto{background:var(--navy);color:var(--white);border-color:var(--navy)}
+@media(max-width:560px){.painel-projetos{right:8px;bottom:8px;width:calc(94vw - 4px)}.projeto-acoes .btn{flex:1}#chipProjeto{max-width:150px;overflow:hidden;text-overflow:ellipsis}}
 @media(prefers-reduced-motion:reduce){.ferr,.btn,.msg{transition:none!important}}
 </style>
 </head><body>
@@ -321,12 +335,13 @@ body.modo-extensao .chat-shell{box-shadow:6px 7px 0 var(--yellow)}body.modo-exte
     <button class="icobtn" id="abrirHist" title="Abrir histórico" aria-label="Abrir histórico"><svg class="ico"><use href="#i-history"/></svg></button>
    </div>
   </div>
-  <div class="chat-cap"><span><svg class="ico"><use href="#i-file"/></svg> documentos</span><span>▦ tabelas</span><span>▤ planilha CSV</span><span>▤ arquivos</span><span><svg class="ico"><use href="#i-leaf"/></svg> imagem</span><span><svg class="ico"><use href="#i-sound"/></svg> voz</span><span><svg class="ico"><use href="#i-video"/></svg> vídeo</span></div>
+  <div class="chat-cap"><span id="chipProjeto">sem projeto</span><span><svg class="ico"><use href="#i-file"/></svg> documentos</span><span>▦ tabelas</span><span>▤ planilha CSV</span><span>▤ arquivos</span><span><svg class="ico"><use href="#i-leaf"/></svg> imagem</span><span><svg class="ico"><use href="#i-sound"/></svg> voz</span><span><svg class="ico"><use href="#i-video"/></svg> vídeo</span></div>
   <div class="msgs" id="msgs"><div class="msg ele">Oi. Sou o <strong>Myn-01</strong>, feito de abas recicladas. ♻<br><br>Leio documentos, monto tabelas, crio arquivos e gero imagem, narração e clipe — tudo free, sem chave. No chat, use <code>/plugin mensagem</code> para chamar uma das <span id="msgRotas">carregando...</span> rotas.</div></div>
   <div class="anexos" id="anexos"></div>
      <div class="composer">
     <div class="ferramentas ferramentas-principais">
      <button class="ferr" id="btnMemoria" title="Memória e RAG locais"><svg class="ico"><use href="#i-history"/></svg> memória</button>
+     <button class="ferr" id="btnProjetos" title="Projetos locais com instruções e memória"><svg class="ico"><use href="#i-file"/></svg> projetos</button>
      <button class="ferr" id="btnExtensao" title="Baixar ou abrir a extensão"><svg class="ico"><use href="#i-gear"/></svg> extensão</button>
      <button class="ferr" data-midia="imagem"><svg class="ico"><use href="#i-leaf"/></svg> imagem</button>
      <button class="ferr" data-midia="audio"><svg class="ico"><use href="#i-sound"/></svg> áudio</button>
@@ -379,7 +394,20 @@ body.modo-extensao .chat-shell{box-shadow:6px 7px 0 var(--yellow)}body.modo-exte
   <input type="file" id="memArquivo" accept="application/json,.json" hidden>
  </div>
 </div>
-<div class="painel-vm" id="painelVM">
+<div class="painel-vm painel-projetos" id="painelProjetos" aria-label="Projetos locais">
+  <div class="pv-topo"><b>PROJETOS LOCAIS</b><span class="pv-tag" id="projetoCap">—</span><button class="icobtn" id="fecharProjetos" aria-label="Fechar projetos">✕</button></div>
+  <div class="pv-corpo">
+   <div class="projeto-form">
+    <label>Nome do projeto<input id="projetoNome" maxlength="80" placeholder="Ex.: Myn 1.4"></label>
+    <label>Instruções do projeto<textarea id="projetoInstrucoes" maxlength="6000" placeholder="Ex.: Responder em português, citar fontes e declarar limites."></textarea></label>
+    <div class="projeto-acoes"><button class="btn" id="projetoSalvar">SALVAR</button><button class="btn sec" id="projetoNovo">NOVO</button><button class="btn sec" id="projetoExcluir">EXCLUIR</button><button class="btn sec" id="projetoExportar">EXPORTAR</button><button class="btn sec" id="projetoImportar">IMPORTAR</button></div>
+   </div>
+   <div class="pv-grupo"><b>Projetos salvos neste navegador</b><div class="projeto-lista" id="projetoLista">carregando...</div></div>
+   <div id="projetoStatus">selecione ou crie um projeto</div>
+   <input type="file" id="projetoArquivo" accept="application/json,.json" hidden>
+  </div>
+ </div>
+ <div class="painel-vm" id="painelVM">
  <div class="pv-topo"><b>VM WEB · SANDBOX</b><span class="pv-tag" id="pvCap">—</span><button class="icobtn" id="fecharVM">✕</button></div>
  <div class="pv-corpo">
   <div class="pv-linha"><input id="vmOp" value="analisar"><input id="vmArgs" value="{&quot;texto&quot;:&quot;Myn Recicla analisa código free&quot;}"><button class="btn sec" id="vmExec">EXECUTAR</button></div>
@@ -416,7 +444,7 @@ body.modo-extensao .chat-shell{box-shadow:6px 7px 0 var(--yellow)}body.modo-exte
 <div class="fundo" id="fundo"></div>
 
 <script src="assets/mini-myns.js"></script>
-<script type="module" src="playground.js?v=34"></script>
-<script type="module" src="app.mjs?v=8"></script>
+<script type="module" src="playground.js?v=35"></script>
+<script type="module" src="app.mjs?v=9"></script>
 
 </body></html>

@@ -1,0 +1,35 @@
+{
+  "schema": "MspUsageNote.v1",
+  "document_kind": "technical_usage_not_tax_invoice",
+  "project_id": "myn-Recicla-01",
+  "task_id": "work-projetos-1.4",
+  "session_id": "ses_dfb7e44bbffepzBlwFy3j0hcSl",
+  "status": "completed",
+  "started_at": "2026-11-28T16:53:15Z",
+  "finished_at": "2026-11-28T17:04:32Z",
+  "letter_sha256": "baa0acb19f13bf29d2735b9083562177e0bdef19090e8ef1aa2735dddba66196",
+  "receipts": [
+    {
+      "path": "receipts/validacao-local.md",
+      "sha256": "71e4d7278aa4fd769d2df46197725981156fbae6c747e733698c8e50fc6eeca2"
+    }
+  ],
+  "events": [
+    {
+      "id": "sha256:71e4d7278aa4fd769d2df46197725981156fbae6c747e733698c8e50fc6eeca2",
+      "route": "local:node-test+browser-qa+visual-proof",
+      "status": "passed",
+      "receipt": "receipts/validacao-local.md"
+    }
+  ],
+  "metrics": {
+    "calls": { "value": 0, "unit": "chamadas MSP", "source": "nenhuma chamada MSP nesta tarefa", "state": "measured" },
+    "failed_attempts": { "value": 0, "unit": "tentativas MSP falhas", "source": "nenhuma chamada MSP nesta tarefa", "state": "measured" },
+    "input_tokens": { "value": null, "unit": "tokens", "source": "contador de tokens do harness não exposto", "state": "unknown" },
+    "output_tokens": { "value": null, "unit": "tokens", "source": "contador de tokens do harness não exposto", "state": "unknown" },
+    "total_tokens": { "value": null, "unit": "tokens", "source": "contador de tokens do harness não exposto", "state": "unknown" },
+    "cost": { "value": null, "unit": "USD", "source": "sem recibo de custo MSP", "state": "unknown" }
+  },
+  "savings": null,
+  "notes": "A meta 1.4 foi registrada em /goal e o primeiro incremento de projetos locais foi entregue com 97/97 testes Node, 8/8 testes específicos, QA no navegador e prints desktop/mobile. O marco F2 permanece parcial: arquivos vinculados e memória do servidor por projeto ficam pendentes. Nenhuma coleta nova de URLs ou comparação paga com ChatGPT foi realizada."
+}
