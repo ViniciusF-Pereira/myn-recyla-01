@@ -1,0 +1,35 @@
+{
+  "schema": "MspUsageNote.v1",
+  "document_kind": "technical_usage_not_tax_invoice",
+  "project_id": "myn-Recicla-01",
+  "task_id": "work-projetos-arquivos-1.4",
+  "session_id": "ses_dfb7e44bbffepzBlwFy3j0hcSl",
+  "status": "completed",
+  "started_at": "2026-11-28T17:05:00Z",
+  "finished_at": "2026-11-28T17:47:51Z",
+  "letter_sha256": "9afebd3f9fbbeefd58678b46e95414c832a07924221f4b8286cd8812a4561602",
+  "receipts": [
+    {
+      "path": "receipts/validacao-local.md",
+      "sha256": "dead75ac406a43eb4b63e5d30cc1492e2f95a9de47dff8ed97f7704b55ef5cad"
+    }
+  ],
+  "events": [
+    {
+      "id": "sha256:dead75ac406a43eb4b63e5d30cc1492e2f95a9de47dff8ed97f7704b55ef5cad",
+      "route": "local:node-test+browser-qa+visual-proof+sse-real",
+      "status": "passed",
+      "receipt": "receipts/validacao-local.md"
+    }
+  ],
+  "metrics": {
+    "calls": { "value": 0, "unit": "chamadas MSP", "source": "nenhuma chamada MSP nesta tarefa", "state": "measured" },
+    "failed_attempts": { "value": 0, "unit": "tentativas MSP falhas", "source": "nenhuma chamada MSP nesta tarefa", "state": "measured" },
+    "input_tokens": { "value": null, "unit": "tokens", "source": "contador de tokens do harness não exposto", "state": "unknown" },
+    "output_tokens": { "value": null, "unit": "tokens", "source": "contador de tokens do harness não exposto", "state": "unknown" },
+    "total_tokens": { "value": null, "unit": "tokens", "source": "contador de tokens do harness não exposto", "state": "unknown" },
+    "cost": { "value": null, "unit": "USD", "source": "sem recibo de custo MSP", "state": "unknown" }
+  },
+  "savings": null,
+  "notes": "A continuação entregou anexos de texto, importação de histórico local, contexto estruturado no SSE, memória de continuidade e endpoint de checkpoint para o goal. Suíte Node 101/101, testes direcionados 12/12, SSE real e QA visual aprovados. Limites: anexos de texto apenas, versionamento pendente e memória do servidor ainda por sessão. Nenhuma coleta nova de URLs."
+}

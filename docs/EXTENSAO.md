@@ -180,7 +180,7 @@ Relatório detalhado em `outputs/extensao-teste.json`.
 - envio sem confirmação: bloqueado com `codigo=confirmacao_necessaria`;
 - Pollinations no navegador: `OK`;
 - aceite da extensão: **25/25**;
-- suíte Node: **97/97**.
+- suíte Node: **101/101**.
 
 ## Produção
 

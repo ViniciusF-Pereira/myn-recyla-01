@@ -49,7 +49,7 @@ async function executarPasso(passo, objetivo) {
           if (!texto) return { ok: false, detalhe: 'API rápida indisponível', ms: Date.now() - inicio };
           return { ok: true, detalhe: texto.replace(/\s+/g, ' ').slice(0, 200), ms: Date.now() - inicio };
         }
-        return { ok: true, detalhe: 'pulado: rota browser não usada em goal autônomo (use /loop)', ms: Date.now() - inicio };
+        return { ok: false, status: 'skipped', detalhe: 'pulado: rota browser não usada em goal autônomo (use /loop)', ms: Date.now() - inicio };
       }
       case 'rota': {
         const r = await api('/api/orquestrar', { tarefa: passo.entrada || objetivo, max: 2, rapido: true });
@@ -75,22 +75,51 @@ async function executarPasso(passo, objetivo) {
   } catch (e) { return { ok: false, detalhe: String(e.message).slice(0, 160), ms: Date.now() - inicio }; }
 }
 
+export function contextoHistoricoGoal(goal = {}) {
+  const execucoes = (goal.execucoes || []).slice(-3);
+  const linhas = execucoes.map((e) => {
+    const concluidos = (e.passos || []).filter((p) => p.ok).map((p) => p.acao + ':' + (p.alvo || '')).join(', ') || 'nenhum';
+    const pendentes = (e.passos || []).filter((p) => !p.ok).map((p) => p.acao + ':' + (p.alvo || '') + ' (' + (p.detalhe || 'falhou') + ')').join(', ') || 'nenhum';
+    return '- ' + e.em + ': concluídos=' + concluidos + '; pendentes=' + pendentes;
+  });
+  if (goal.checkpoint?.pendentes?.length) linhas.push('- checkpoint: pendentes=' + goal.checkpoint.pendentes.join(', '));
+  return linhas.join('\n');
+}
+
 /** Executa um ciclo completo planejado. */
 export async function executarCiclo(goal) {
   const inicio = Date.now();
-  const plano = await planejar(goal.objetivo, { maxPassos: goal.maxPassos || 4 });
+  const plano = await planejar(goal.objetivo, { maxPassos: goal.maxPassos || 4, historico: contextoHistoricoGoal(goal) });
   const passos = [];
   for (const passo of plano.passos) passos.push({ ...passo, ...(await executarPasso(passo, goal.objetivo)) });
   const sucessos = passos.filter((p) => p.ok).length;
   const registro = { em: new Date().toISOString(), objetivo: goal.objetivo, via: plano.via, sucessos, total: passos.length, ms: Date.now() - inicio, passos };
   goal.execucoes = (goal.execucoes || []).concat(registro).slice(-20);
   goal.ultimaExecucao = registro.em;
+  goal.checkpoint = {
+    atualizadoEm: registro.em,
+    concluidos: passos.filter((p) => p.ok).map((p) => p.acao + ':' + (p.alvo || '')),
+    pendentes: passos.filter((p) => !p.ok).map((p) => p.acao + ':' + (p.alvo || '') + ' — ' + (p.detalhe || 'falhou')),
+  };
   await salvar();
   return registro;
 }
 
 export function listar() { return goals.map((g) => ({ ...g, executos: (g.execucoes || []).length })); }
 export function buscar(id) { return goals.find((g) => g.id === id); }
+
+export async function atualizarCheckpoint(id, checkpoint = {}) {
+  const goal = buscar(id);
+  if (!goal) return false;
+  const limpar = (lista) => Array.isArray(lista) ? lista.map((x) => String(x || '').slice(0, 300)).filter(Boolean).slice(0, 50) : [];
+  goal.checkpoint = {
+    atualizadoEm: new Date().toISOString(),
+    concluidos: limpar(checkpoint.concluidos),
+    pendentes: limpar(checkpoint.pendentes),
+  };
+  await salvar();
+  return true;
+}
 
 export async function criar({ objetivo, intervaloMs = 300000, maxExecucoes = 10, maxPassos = 4, executarAgora = true }) {
   if (!objetivo || String(objetivo).length > 2000) throw new Error('objetivo inválido');

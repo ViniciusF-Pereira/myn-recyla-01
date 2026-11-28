@@ -24,9 +24,13 @@ A imagem usa Pollinations quando disponível e cai para Canvas local. O vídeo �
 
 ## Projetos locais
 
-Clique em **PROJETOS** para criar ou selecionar um projeto. Cada projeto tem nome, instruções e memória isolada no cliente. O projeto ativo aparece no chip do chat e suas instruções entram no contexto do pedido.
+Clique em **PROJETOS** para criar ou selecionar um projeto. Cada projeto tem nome, instruções, anexos de texto e memória isolada no cliente. O projeto ativo aparece no chip do chat.
 
-Use **EXPORTAR** e **IMPORTAR** para levar os projetos em JSON. Guia completo: [`PROJETOS.md`](PROJETOS.md).
+- **ANEXAR ARQUIVO** adiciona arquivos de texto ao projeto.
+- **IMPORTAR HISTÓRICO** copia a memória local e os registros do servidor sem duplicar registros.
+- **EXPORTAR** e **IMPORTAR** levam projetos e arquivos em JSON.
+
+Projeto, instruções e arquivos são enviados separadamente no SSE. Guia completo: [`PROJETOS.md`](PROJETOS.md).
 
 ## Planilhas
 

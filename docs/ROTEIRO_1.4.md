@@ -18,9 +18,9 @@ Aceite: 20 perguntas externas sem referência inventada; toda afirmação releva
 
 **Estado:** parcialmente entregue.
 
-Entregue: projetos, instruções, seleção ativa, memória isolada no cliente, exportação/importação e injeção de contexto no SSE.
+Entregue: projetos, instruções, seleção ativa, memória isolada no cliente, anexos de texto, importação de histórico local e do servidor, exportação/importação e contexto estruturado no SSE.
 
-Próximo: anexar arquivos ao projeto, versionar instruções e mostrar memória do projeto na interface.
+Próximo: versionar instruções, mostrar memória importada na interface e isolar também a memória do servidor por projeto.
 
 Aceite: dois projetos não misturam contexto; dados sobrevivem ao recarregamento; exportação/importação preserva projetos.
 
@@ -57,6 +57,12 @@ Aceite: método e resultados brutos publicados, incluindo derrotas e limitaçõe
 Snapshot em 28/11/2026: 273.503 tentativas, 915.688 URLs na fila, 3,04% da meta. A meta de 9 milhões não foi atingida.
 
 Aceite: somente a fila existente é testada; progresso e evidência são registrados sem inflar resultados.
+
+## Continuidade das metas
+
+O planejador do `/goal` agora recebe as três execuções anteriores e o checkpoint do goal. Passos concluídos, falhas e pendências entram no prompt. Rotas de navegador puladas não são mais contadas como sucesso.
+
+O checkpoint pode ser atualizado por `POST /api/goal/checkpoint`. A meta atual já registra projetos, anexos, histórico e SSE estruturado como concluídos, com versionamento, memória do servidor, pesquisa web, tool-use, extensão e benchmark como pendentes.
 
 ## Regras de entrega
 

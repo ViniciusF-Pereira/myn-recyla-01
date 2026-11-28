@@ -3,13 +3,13 @@ import assert from 'node:assert/strict';
 import { criarProjetos } from '../web/core/projetos.mjs';
 
 function repoFake() {
-  const dados = new Map();
+  const tabelas = { sessoes: new Map(), arquivos: new Map(), eventos: new Map() };
   return {
-    dados,
-    async inserir(tabela, valor) { assert.equal(tabela, 'sessoes'); dados.set(valor.id, { ...valor }); return valor.id; },
-    async obter(tabela, id) { assert.equal(tabela, 'sessoes'); return dados.get(id) || null; },
-    async listar(tabela, limite = 100) { assert.equal(tabela, 'sessoes'); return [...dados.values()].sort((a, b) => a.t - b.t).slice(-limite); },
-    async remover(tabela, id) { assert.equal(tabela, 'sessoes'); return dados.delete(id); },
+    tabelas,
+    async inserir(tabela, valor) { assert.ok(tabelas[tabela]); tabelas[tabela].set(valor.id, { ...valor }); return valor.id; },
+    async obter(tabela, id) { assert.ok(tabelas[tabela]); return tabelas[tabela].get(id) || null; },
+    async listar(tabela, limite = 100) { assert.ok(tabelas[tabela]); return [...tabelas[tabela].values()].sort((a, b) => a.t - b.t).slice(-limite); },
+    async remover(tabela, id) { assert.ok(tabelas[tabela]); return tabelas[tabela].delete(id); },
   };
 }
 
@@ -33,32 +33,63 @@ test('projetos rejeitam nome vazio e limite de instruções', async () => {
   assert.equal(projeto.instrucoes.length, 6000);
 });
 
-test('exportação e importação preservam projetos sem misturar registros', async () => {
+test('arquivos de texto ficam anexados e isolados por projeto', async () => {
+  const projetos = criarProjetos(repoFake());
+  const alpha = await projetos.criar({ nome: 'Alpha' });
+  const beta = await projetos.criar({ nome: 'Beta' });
+  const arquivo = await projetos.anexarArquivo(alpha.id, { nome: 'regras.md', texto: '# Regras\nCitar fontes.' });
+  assert.match(arquivo.id, /^arq:/);
+  assert.equal((await projetos.listarArquivos(alpha.id)).length, 1);
+  assert.equal((await projetos.listarArquivos(beta.id)).length, 0);
+  await assert.rejects(() => projetos.anexarArquivo(alpha.id, { nome: 'grande.txt', texto: 'x'.repeat(250001) }), /250 mil/);
+  assert.equal(await projetos.removerArquivo(alpha.id, arquivo.id), true);
+  assert.equal((await projetos.listarArquivos(alpha.id)).length, 0);
+});
+
+test('exportação e importação preservam projetos e arquivos', async () => {
   const origem = criarProjetos(repoFake());
-  await origem.criar({ nome: 'Alpha', instrucoes: 'Regras do Alpha.' });
+  const alpha = await origem.criar({ nome: 'Alpha', instrucoes: 'Regras do Alpha.' });
   await origem.criar({ nome: 'Beta', instrucoes: 'Regras do Beta.' });
+  await origem.anexarArquivo(alpha.id, { nome: 'regras.md', texto: 'Citar fontes.' });
   const json = await origem.exportar();
   const destino = criarProjetos(repoFake());
-  assert.equal(await destino.importar(json), 2);
+  const resultado = await destino.importar(json);
+  assert.deepEqual(resultado, { projetos: 2, arquivos: 1 });
   const lista = await destino.listar();
   assert.deepEqual(lista.map((p) => p.nome).sort(), ['Alpha', 'Beta']);
-  assert.equal((await destino.obter(lista[0].id)).tipo, 'projeto');
+  assert.equal((await destino.listarArquivos(lista.find((p) => p.nome === 'Alpha').id))[0].nome, 'regras.md');
 });
 
 test('importação substitui id inseguro por id local válido', async () => {
   const projetos = criarProjetos(repoFake());
-  const n = await projetos.importar({ _myn: 'myn-projetos', projetos: [{ id: 'proj:<script>', nome: 'Seguro', instrucoes: 'ok' }] });
-  assert.equal(n, 1);
-  const lista = await projetos.listar();
-  assert.match(lista[0].id, /^proj:[a-zA-Z0-9_-]+$/);
+  const resultado = await projetos.importar({ _myn: 'myn-projetos', projetos: [{ id: 'proj:<script>', nome: 'Seguro', instrucoes: 'ok' }] });
+  assert.equal(resultado.projetos, 1);
+  assert.match((await projetos.listar())[0].id, /^proj:[a-zA-Z0-9_-]+$/);
 });
 
-test('remoção de projeto não apaga memória de sessão', async () => {
+test('histórico local é importado uma vez e isolado no projeto', async () => {
   const repo = repoFake();
-  repo.dados.set('mem:1', { id: 'mem:1', tipo: 'memoria', texto: 'não apagar' });
+  repo.tabelas.eventos.set('mem:1', { id: 'mem:1', tipo: 'memoria', sessao: 's1', texto: 'Decisão importante do usuário.' });
+  const projetos = criarProjetos(repo);
+  const projeto = await projetos.criar({ nome: 'Com histórico' });
+  assert.deepEqual(await projetos.importarHistorico(projeto.id), { importados: 1, ignorados: 0, total: 1 });
+  assert.deepEqual(await projetos.importarHistorico(projeto.id), { importados: 0, ignorados: 1, total: 1 });
+  assert.deepEqual(await projetos.importarHistorico(projeto.id, 500, [{ id: 'server:1', texto: 'Histórico do servidor.' }]), { importados: 1, ignorados: 1, total: 2 });
+  const memoria = await import('../web/core/memoria-cliente.mjs').then((m) => m.criarMemoria(repo));
+  const contexto = await memoria.contexto({ projeto: projeto.id, escopo: 'projeto' });
+  assert.equal(contexto.length, 2);
+  assert.ok(contexto.some((item) => /Decisão importante/.test(item.texto)));
+  assert.ok(contexto.some((item) => /Histórico do servidor/.test(item.texto)));
+});
+
+test('remoção de projeto apaga seus arquivos mas preserva memória', async () => {
+  const repo = repoFake();
+  repo.tabelas.eventos.set('mem:1', { id: 'mem:1', tipo: 'memoria', texto: 'não apagar' });
   const projetos = criarProjetos(repo);
   const projeto = await projetos.criar({ nome: 'Temporário' });
+  await projetos.anexarArquivo(projeto.id, { nome: 'nota.txt', texto: 'anexo' });
   assert.equal(await projetos.remover(projeto.id), true);
   assert.equal(await projetos.obter(projeto.id), null);
-  assert.equal(repo.dados.get('mem:1').texto, 'não apagar');
+  assert.equal(repo.tabelas.arquivos.size, 0);
+  assert.equal(repo.tabelas.eventos.get('mem:1').texto, 'não apagar');
 });

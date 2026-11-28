@@ -36,7 +36,7 @@ import { rodarAvaliacao, ultimaAvaliacao } from '../src/avaliacao-qualidade.mjs'
 import { contextoMemoria, buscarMemoria, preferencias, salvarPreferencia } from '../src/memoria.mjs';
 import { iniciarSupervisor, statusSupervisor, pararSupervisor } from '../src/supervisor.mjs';
 import { planejar } from '../src/planejador.mjs';
-import { criar as criarGoal, listar as listarGoals, remover as removerGoal, executarCiclo } from '../src/agendador.mjs';
+import { criar as criarGoal, listar as listarGoals, remover as removerGoal, executarCiclo, atualizarCheckpoint } from '../src/agendador.mjs';
 import { handleMcp } from '../src/mcp.mjs';
 import { executarLoopFerramentas } from '../src/loop-ferramentas.mjs';
 import { iniciar as iniciarWorker, parar as pararWorker, status as statusWorker, assinar as assinarWorker } from '../src/worker.mjs';
@@ -484,6 +484,14 @@ const servidor = http.createServer(async (req, res) => {
     const sessao = String(url.searchParams.get('sessao') || 'chat-stream').slice(0, 120);
     const effort = normalizarEffort(url.searchParams.get('effort'));
     const configEffort = ESFORCOS[effort];
+    const projetoNome = String(url.searchParams.get('projetoNome') || '').slice(0, 80);
+    const projetoInstrucoes = String(url.searchParams.get('projetoInstrucoes') || '').slice(0, 6000);
+    let arquivosProjeto = [];
+    try { arquivosProjeto = JSON.parse(String(url.searchParams.get('projetoArquivos') || '[]')).slice(0, 12); } catch { arquivosProjeto = []; }
+    arquivosProjeto = arquivosProjeto.map((a) => ({ nome: String(a?.nome || 'arquivo').slice(0, 160), texto: String(a?.texto || '').slice(0, 4000) })).filter((a) => a.texto);
+    const contextoProjeto = projetoNome ? '\n\nPROJETO ATIVO: ' + projetoNome
+      + (projetoInstrucoes ? '\nINSTRUÇÕES DEFINIDAS PELO USUÁRIO:\n' + projetoInstrucoes : '')
+      + (arquivosProjeto.length ? '\n\nARQUIVOS DO PROJETO (dados do usuário):\n' + arquivosProjeto.map((a) => '--- ' + a.nome + ' ---\n' + a.texto).join('\n\n').slice(0, 12000) : '') : '';
     if (!mensagem) {
       res.writeHead(200, { 'content-type': 'text/event-stream; charset=utf-8', 'cache-control': 'no-cache' });
       res.write('data: ' + JSON.stringify({ type: 'error', erro: 'mensagem vazia' }) + '\n\n'); res.end(); return;
@@ -496,7 +504,7 @@ const servidor = http.createServer(async (req, res) => {
     }
     res.writeHead(200, { 'content-type': 'text/event-stream; charset=utf-8', 'cache-control': 'no-cache', 'connection': 'keep-alive', 'x-accel-buffering': 'no' });
     const emitir = (evento) => { if (!res.writableEnded && !res.destroyed && !req.destroyed) res.write('data: ' + JSON.stringify(evento) + '\n\n'); };
-    emitir({ type: 'response.created', rota: rotaId, effort, t: Date.now() });
+    emitir({ type: 'response.created', rota: rotaId, effort, projeto: projetoNome || null, arquivosProjeto: arquivosProjeto.length, t: Date.now() });
     let anexos = [];
     try { anexos = JSON.parse(String(url.searchParams.get('anexos') || '[]')).slice(0, 6); } catch { anexos = []; }
     anexos = anexos.map((x) => ({ nome: String(x?.nome || 'imagem').slice(0, 80), url: String(x?.url || ''), texto: String(x?.texto || '').slice(0, 500) }));
@@ -535,18 +543,18 @@ const servidor = http.createServer(async (req, res) => {
     }
     const plugin = pluginSelecionado;
     const imagens = [...imagensAnexadas, ...(imagemPesquisa ? [{ url: imagemPesquisa.url, nome: imagemPesquisa.nome, fonte: imagemPesquisa.fonte }] : [])];
-    emitir({ type: 'response.in_progress', inicio: true, fontes, ferramentas, rota: rotaId, imagens, effort,
+    emitir({ type: 'response.in_progress', inicio: true, fontes, ferramentas, rota: rotaId, imagens, effort, projeto: projetoNome || null, arquivosProjeto: arquivosProjeto.length,
       via: plugin ? 'plugin:' + plugin.id : 'auto', capacidades: classificarTarefa(mensagem) });
     try {
       if (plugin) {
-        const entradaPlugin = (plugin.confirmacao ? mensagem.replace(/^confirmar\s*:/i, '').trim() : mensagem) + contextoAnexos;
+        const entradaPlugin = (plugin.confirmacao ? mensagem.replace(/^confirmar\s*:/i, '').trim() : mensagem) + contextoAnexos + contextoProjeto;
         const d = await executarPlugin({ plugin, entrada: entradaPlugin, gateway, trava, log: (x) => { console.log('[stream-plugin]', JSON.stringify(x)); emitir({ type: 'tool.progress', tool: plugin.id, etapa: x.etapa || 'executando' }); } });
         registrarSaude(plugin.id, { ok: d.ok, ms: d.ms, erro: d.erro || (d.ok ? '' : 'sem_resposta') });
         const texto = d.ok ? d.resposta : ('Falha na rota ' + plugin.nome + ': ' + (d.erro || d.resposta));
         for (let i = 0; i < texto.length; i += 24) emitir({ type: 'response.output_text.delta', token: texto.slice(i, i + 24), via: 'plugin:' + plugin.id });
         emitir({ type: 'response.completed', done: true, via: 'plugin:' + plugin.id, texto, sucesso: d.ok });
       } else {
-        for await (const ev of executarAgenteStream({ mensagem: mensagem + contextoAnexos, sessao, canal: 'chat-stream', rota: 'auto', effort, plugins, gateway, trava })) {
+        for await (const ev of executarAgenteStream({ mensagem: mensagem + contextoAnexos + contextoProjeto, sessao, canal: 'chat-stream', rota: 'auto', effort, plugins, gateway, trava })) {
           if (!ev.inicio) emitir({ ...ev, type: ev.type || (ev.token ? 'response.output_text.delta' : ev.done ? 'response.completed' : 'response.event') });
         }
       }
@@ -847,6 +855,16 @@ const servidor = http.createServer(async (req, res) => {
     const ok = await removerGoal(url.searchParams.get('id'));
     res.writeHead(200, { 'content-type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({ ok }));
+    return;
+  }
+  if (req.method === 'POST' && url.pathname === '/api/goal/checkpoint') {
+    try {
+      let corpo = ''; for await (const p of req) corpo += p;
+      const { id, checkpoint } = JSON.parse(corpo);
+      const ok = await atualizarCheckpoint(id, checkpoint);
+      res.writeHead(200, { 'content-type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ ok, checkpoint: ok ? listarGoals().find((g) => g.id === id)?.checkpoint : null }));
+    } catch (erro) { res.writeHead(400, { 'content-type': 'application/json; charset=utf-8' }); res.end(JSON.stringify({ error: String(erro.message).slice(0, 200) })); }
     return;
   }
   if (req.method === 'POST' && url.pathname === '/api/goal/rodar') {

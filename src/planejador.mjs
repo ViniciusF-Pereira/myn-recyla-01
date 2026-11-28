@@ -13,12 +13,13 @@ function planoBase(objetivo) {
   ];
 }
 
-export async function planejar(objetivo, { maxPassos = 6 } = {}) {
+export async function planejar(objetivo, { maxPassos = 6, historico = '' } = {}) {
   const mapa = await carregarMapaModelos();
   const nomes = mapa.slice(0, 12).map((r) => r.id).join(', ');
   const prompt = 'Você é o planejador do Myn Recicla/01. Objetivo: ' + String(objetivo).slice(0, 1200)
     + '\nRotas disponíveis: ' + nomes
     + '\nAções permitidas: ' + ACOES.join(', ')
+    + (historico ? '\nHISTÓRICO E CHECKPOINT (não repita concluídos; priorize pendentes e falhas):\n' + String(historico).slice(0, 1800) : '')
     + '\nResponda SOMENTE JSON: {"passos":[{"acao":"...","alvo":"...","entrada":"...","criterio":"..."}]} máximo ' + maxPassos + '. Sem texto fora do JSON.';
   const r = await respostaRapida(prompt, 9000);
   let passos = planoBase(objetivo);

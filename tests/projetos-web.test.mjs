@@ -15,11 +15,25 @@ test('Playground oferece painel de projetos e seleção persistente', async () =
   assert.match(html, /id="painelProjetos"/);
   assert.match(html, /id="projetoNome"/);
   assert.match(html, /id="projetoInstrucoes"/);
+  assert.match(html, /id="projetoAnexar"/);
+  assert.match(html, /id="projetoHistorico"/);
+  assert.match(html, /id="projetoArquivosLista"/);
   assert.match(html, /id="chipProjeto"/);
   assert.match(js, /myn-projeto-ativo/);
   assert.match(js, /window\.myn\.projetos\.obter/);
+  assert.match(js, /window\.myn\.projetos\.listarArquivos/);
+  assert.match(js, /window\.myn\.projetos\.importarHistorico/);
+  assert.match(js, /projetoArquivos=/);
   assert.match(js, /PROJETO ATIVO:/);
   assert.match(js, /INSTRUÇÕES DEFINIDAS PELO USUÁRIO/);
+});
+
+test('SSE do servidor aceita contexto estruturado do projeto', async () => {
+  const server = await readFile('scripts/site-server.mjs', 'utf8');
+  assert.match(server, /projetoNome/);
+  assert.match(server, /projetoInstrucoes/);
+  assert.match(server, /projetoArquivos/);
+  assert.match(server, /contextoProjeto/);
 });
 
 test('projetos usam o repositório local existente sem serviço externo', async () => {

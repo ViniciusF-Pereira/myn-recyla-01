@@ -29,7 +29,7 @@
 - `response.completed` — `done: true`, texto final e sucesso;
 - `error` — falha em `erro`.
 
-Os campos legados `inicio`, `token` e `done` continuam presentes. O cliente cancela por `AbortController`. A reconexão antes do primeiro evento é permitida somente na rota `auto`; rotas explícitas e comandos `confirmar:` não são repetidos automaticamente.
+Os campos legados `inicio`, `token` e `done` continuam presentes. Contexto de projeto é enviado separadamente em `projetoNome`, `projetoInstrucoes` e `projetoArquivos`; os eventos `response.created` e `response.in_progress` informam `projeto` e `arquivosProjeto`. O cliente cancela por `AbortController`. A reconexão antes do primeiro evento é permitida somente na rota `auto`; rotas explícitas e comandos `confirmar:` não são repetidos automaticamente.
 
 ## Mídia e arquivos
 
@@ -44,6 +44,7 @@ Os campos legados `inicio`, `token` e `done` continuam presentes. O cliente canc
 ## Agentes e workers
 
 - `POST /mcp`
+- `POST /api/goal/checkpoint` — atualiza concluídos e pendências de uma meta ativa.
 - `POST /v1/messages` — compatibilidade Anthropic Messages, streaming, thinking e tool_use.
 - `GET /api/token` — token local (loopback).
 - `POST /api/token/renovar` — renovação local.

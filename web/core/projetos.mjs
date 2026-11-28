@@ -1,6 +1,11 @@
 /** Projetos locais persistentes no navegador, usando o repositório IndexedDB existente. */
 import * as db from '../db/leve.mjs';
 
+const MAX_ARQUIVOS = 20;
+const MAX_CARACTERES_ARQUIVO = 250000;
+const MAX_CARACTERES_PROJETO = 1000000;
+const MAX_HISTORICO = 500;
+
 function limparTexto(valor, maximo) {
   return String(valor || '').replace(/\r/g, '').trim().slice(0, maximo);
 }
@@ -11,8 +16,8 @@ function validar({ nome, instrucoes = '' }) {
   return { nome: nomeLimpo, instrucoes: limparTexto(instrucoes, 6000) };
 }
 
-function novoId() {
-  return 'proj:' + (globalThis.crypto?.randomUUID?.() || Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10));
+function novoId(prefixo = 'proj:') {
+  return prefixo + (globalThis.crypto?.randomUUID?.() || Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10));
 }
 
 export function criarProjetos(repo) {
@@ -44,22 +49,85 @@ export function criarProjetos(repo) {
     return projeto;
   }
 
+  async function listarArquivos(projetoId) {
+    if (!(await obter(projetoId))) throw new Error('projeto não encontrado');
+    return (await repo.listar('arquivos', 10000))
+      .filter((item) => item.tipo === 'projeto-arquivo' && item.projetoId === projetoId)
+      .sort((a, b) => (a.t || 0) - (b.t || 0));
+  }
+
+  async function anexarArquivo(projetoId, entrada) {
+    if (!(await obter(projetoId))) throw new Error('projeto não encontrado');
+    const nome = limparTexto(entrada?.nome, 160);
+    const texto = String(entrada?.texto || '').replace(/\r/g, '');
+    if (!nome) throw new Error('nome do arquivo obrigatório');
+    if (!texto.trim()) throw new Error('arquivo de texto vazio');
+    if (texto.length > MAX_CARACTERES_ARQUIVO) throw new Error('arquivo excede 250 mil caracteres');
+    const atuais = await listarArquivos(projetoId);
+    if (atuais.length >= MAX_ARQUIVOS) throw new Error('limite de 20 arquivos por projeto');
+    const total = atuais.reduce((n, item) => n + String(item.texto || '').length, 0);
+    if (total + texto.length > MAX_CARACTERES_PROJETO) throw new Error('limite de 1 milhão de caracteres por projeto');
+    const arquivo = {
+      id: novoId('arq:'), tipo: 'projeto-arquivo', projetoId, nome,
+      tipoTexto: limparTexto(entrada?.tipoTexto || 'text/plain', 80),
+      texto, tamanho: texto.length, t: Date.now(),
+    };
+    await repo.inserir('arquivos', arquivo);
+    return arquivo;
+  }
+
+  async function removerArquivo(projetoId, arquivoId) {
+    const arquivo = await repo.obter('arquivos', arquivoId);
+    if (!arquivo || arquivo.tipo !== 'projeto-arquivo' || arquivo.projetoId !== projetoId) throw new Error('arquivo não encontrado');
+    return repo.remover('arquivos', arquivoId);
+  }
+
+  async function importarHistorico(projetoId, limite = MAX_HISTORICO, externos = []) {
+    if (!(await obter(projetoId))) throw new Error('projeto não encontrado');
+    const maximo = Math.max(1, Math.min(MAX_HISTORICO, Number(limite) || MAX_HISTORICO));
+    const locais = (await repo.listar('eventos', 10000))
+      .filter((item) => item.tipo === 'memoria' && item.texto && !item.meta?.importadoDe)
+      .slice(-maximo);
+    const externosValidos = Array.isArray(externos) ? externos.slice(0, maximo).map((item) => ({ ...item, tipo: 'memoria', texto: String(item?.texto || '') })).filter((item) => item.id && item.texto) : [];
+    const eventos = [...locais, ...externosValidos];
+    let importados = 0, ignorados = 0;
+    for (const evento of eventos) {
+      const id = 'memproj:' + projetoId + ':' + evento.id;
+      if (await repo.obter('eventos', id)) { ignorados++; continue; }
+      await repo.inserir('eventos', {
+        ...evento, id, tipo: 'memoria', projeto: projetoId, escopo: 'projeto', t: Date.now(),
+        meta: { ...(evento.meta || {}), importadoDe: evento.id, importadoEm: new Date().toISOString() },
+      });
+      importados++;
+    }
+    return { importados, ignorados, total: eventos.length };
+  }
+
   async function remover(id) {
     if (!String(id || '').startsWith('proj:')) throw new Error('id de projeto inválido');
+    for (const arquivo of await listarArquivos(id)) await repo.remover('arquivos', arquivo.id);
     return repo.remover('sessoes', id);
   }
 
   async function exportar() {
-    return { _myn: 'myn-projetos', _versao: 1, em: new Date().toISOString(), projetos: await listar() };
+    return {
+      _myn: 'myn-projetos', _versao: 2, em: new Date().toISOString(),
+      projetos: await listar(),
+      arquivos: (await repo.listar('arquivos', 10000)).filter((item) => item.tipo === 'projeto-arquivo'),
+    };
   }
 
   async function importar(json) {
     if (json?._myn !== 'myn-projetos' || !Array.isArray(json.projetos)) throw new Error('arquivo de projetos inválido');
     if (json.projetos.length > 100) throw new Error('limite de 100 projetos por importação');
+    const arquivos = Array.isArray(json.arquivos) ? json.arquivos.slice(0, 2000) : [];
+    if (arquivos.reduce((n, item) => n + String(item?.texto || '').length, 0) > 5000000) throw new Error('importação excede 5 milhões de caracteres');
+    const mapaIds = new Map();
     let importados = 0;
     for (const item of json.projetos) {
       const dados = validar(item || {});
       const id = /^proj:[a-zA-Z0-9_-]{1,100}$/.test(String(item.id || '')) ? item.id : novoId();
+      mapaIds.set(item.id, id);
       const atual = await obter(id);
       const agora = new Date().toISOString();
       await repo.inserir('sessoes', {
@@ -69,10 +137,24 @@ export function criarProjetos(repo) {
       });
       importados++;
     }
-    return importados;
+    let arquivosImportados = 0;
+    for (const item of arquivos) {
+      const projetoId = mapaIds.get(item?.projetoId);
+      if (!projetoId || !(await obter(projetoId))) continue;
+      const texto = String(item.texto || '').replace(/\r/g, '');
+      if (!texto.trim() || texto.length > MAX_CARACTERES_ARQUIVO) continue;
+      await repo.inserir('arquivos', {
+        id: novoId('arq:'), tipo: 'projeto-arquivo', projetoId,
+        nome: limparTexto(item.nome, 160) || 'arquivo.txt',
+        tipoTexto: limparTexto(item.tipoTexto || 'text/plain', 80),
+        texto, tamanho: texto.length, t: Date.now(),
+      });
+      arquivosImportados++;
+    }
+    return { projetos: importados, arquivos: arquivosImportados };
   }
 
-  return { listar, obter, criar, atualizar, remover, exportar, importar };
+  return { listar, obter, criar, atualizar, listarArquivos, anexarArquivo, removerArquivo, importarHistorico, remover, exportar, importar };
 }
 
 export const projetos = criarProjetos(db);

@@ -283,7 +283,7 @@ header{background:var(--ink);border-bottom:2px solid var(--yellow)}
 body.modo-extensao .chat-shell{box-shadow:6px 7px 0 var(--yellow)}body.modo-extensao .msgs{height:min(62vh,620px)}body.modo-extensao .pg-section{padding-top:8px!important}
 @media(max-width:860px){.msgs{height:480px;padding:22px 18px}.msg{max-width:94%}.chat-top{flex-wrap:wrap}.chat-controles{width:100%;margin-left:0}.chat-controles select{flex:1;max-width:none}.estudo-linha{grid-template-columns:1fr 1fr}#campoDuracao{grid-column:1/-1}.st .nota{display:none}}
 @media(max-width:560px){.pg-section{padding-top:18px!important}.st h2{font-size:2.7rem}.chat-shell{box-shadow:6px 7px 0 var(--yellow)}.chat-top{padding:12px}.chat-cap{padding:8px 10px}.msgs{height:52vh;min-height:360px;padding:18px 12px}.msg{font-size:.92rem;padding:12px 13px}.composer{padding:11px}.ferr{min-height:38px}.linha-input{flex-wrap:wrap}.linha-input textarea{order:-1;flex-basis:100%;min-height:58px}.linha-input .btn{flex:1}.linha-input .icobtn{width:44px;height:44px}.estudio-campos{padding:12px}.estudo-linha{grid-template-columns:1fr}.estudio-acoes .btn{flex:1}#estudioStatus{flex-basis:100%;margin-left:0}.estudio-preview{min-height:180px;padding:12px}.extensao-banner a{margin-left:0}}
-@media(max-width:560px){body.estudio-aberto .wa-root{display:none!important}}
+@media(max-width:560px){body.estudio-aberto .wa-root,body.projetos-aberto .wa-root{display:none!important}}
 .painel-projetos{border-color:var(--blue);box-shadow:0 16px 40px rgba(31,111,224,.24)}
 .painel-projetos .pv-topo{background:var(--navy);border-bottom:2px solid var(--yellow)}
 .projeto-form{display:grid;gap:10px;margin-bottom:14px;padding:12px;border:1px solid var(--line);background:var(--paper);border-radius:4px}
@@ -295,6 +295,7 @@ body.modo-extensao .chat-shell{box-shadow:6px 7px 0 var(--yellow)}body.modo-exte
 .projeto-lista{display:grid;gap:8px}.projeto-item{width:100%;display:grid;gap:4px;text-align:left;border:1px solid var(--line);border-radius:4px;background:var(--white);color:var(--ink);padding:10px 11px;cursor:pointer}
 .projeto-item b{font:600 .78rem var(--sans)}.projeto-item small{font:500 .6rem/1.45 var(--mono);color:var(--muted)}
 .projeto-item.on{border:2px solid var(--blue);background:var(--azucl,#eaf2fc);padding:9px 10px;box-shadow:3px 3px 0 var(--paper2)}
+.projeto-arquivo{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:4px;background:var(--white);padding:8px 10px}.projeto-arquivo b{font:600 .72rem var(--sans);min-width:0;overflow:hidden;text-overflow:ellipsis}.projeto-arquivo small{margin-left:auto;font:500 .58rem var(--mono);color:var(--muted);white-space:nowrap}.projeto-arquivo button{border:1px solid var(--line);background:var(--paper);border-radius:3px;padding:4px 7px;font:600 .56rem var(--mono);cursor:pointer}
 #projetoStatus{margin-top:10px;font:500 .62rem var(--mono);color:var(--muted)}
 #chipProjeto{background:var(--navy);color:var(--white);border-color:var(--navy)}
 @media(max-width:560px){.painel-projetos{right:8px;bottom:8px;width:calc(94vw - 4px)}.projeto-acoes .btn{flex:1}#chipProjeto{max-width:150px;overflow:hidden;text-overflow:ellipsis}}
@@ -400,11 +401,13 @@ body.modo-extensao .chat-shell{box-shadow:6px 7px 0 var(--yellow)}body.modo-exte
    <div class="projeto-form">
     <label>Nome do projeto<input id="projetoNome" maxlength="80" placeholder="Ex.: Myn 1.4"></label>
     <label>Instruções do projeto<textarea id="projetoInstrucoes" maxlength="6000" placeholder="Ex.: Responder em português, citar fontes e declarar limites."></textarea></label>
-    <div class="projeto-acoes"><button class="btn" id="projetoSalvar">SALVAR</button><button class="btn sec" id="projetoNovo">NOVO</button><button class="btn sec" id="projetoExcluir">EXCLUIR</button><button class="btn sec" id="projetoExportar">EXPORTAR</button><button class="btn sec" id="projetoImportar">IMPORTAR</button></div>
+    <div class="projeto-acoes"><button class="btn" id="projetoSalvar">SALVAR</button><button class="btn sec" id="projetoNovo">NOVO</button><button class="btn sec" id="projetoExcluir">EXCLUIR</button><button class="btn sec" id="projetoExportar">EXPORTAR</button><button class="btn sec" id="projetoImportar">IMPORTAR</button><button class="btn sec" id="projetoAnexar">ANEXAR ARQUIVO</button><button class="btn sec" id="projetoHistorico">IMPORTAR HISTÓRICO</button></div>
    </div>
+   <div class="pv-grupo"><b>Arquivos de texto do projeto</b><div class="projeto-lista" id="projetoArquivosLista">selecione um projeto</div></div>
    <div class="pv-grupo"><b>Projetos salvos neste navegador</b><div class="projeto-lista" id="projetoLista">carregando...</div></div>
    <div id="projetoStatus">selecione ou crie um projeto</div>
    <input type="file" id="projetoArquivo" accept="application/json,.json" hidden>
+   <input type="file" id="projetoArquivoAnexo" accept=".txt,.md,.csv,.json,.js,.mjs,.html,.css,.xml,.yml,.yaml,text/*" multiple hidden>
   </div>
  </div>
  <div class="painel-vm" id="painelVM">
@@ -444,7 +447,7 @@ body.modo-extensao .chat-shell{box-shadow:6px 7px 0 var(--yellow)}body.modo-exte
 <div class="fundo" id="fundo"></div>
 
 <script src="assets/mini-myns.js"></script>
-<script type="module" src="playground.js?v=35"></script>
-<script type="module" src="app.mjs?v=9"></script>
+<script type="module" src="playground.js?v=38"></script>
+<script type="module" src="app.mjs?v=10"></script>
 
 </body></html>
